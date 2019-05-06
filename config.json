@@ -1,0 +1,5 @@
+{
+	"token":"YOUR_TOKEN_HERE",
+    "owner": "YOUR_CLIENTID_HERE",
+	"commandPrefix": "!"
+}
