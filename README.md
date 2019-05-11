@@ -21,6 +21,8 @@ https://discordapp.com/oauth2/authorize?&client_id=CLIENTID&scope=bot&permission
 
 9. If Discord bot still fails to run please make sure you have nodejs installed and the discord.js & sqlite3 modules
 
+* You will need to have a MySQL server for the user data read/write to work
+
 
 **Hosting your Bot with Heroku**
 
@@ -37,9 +39,13 @@ heroku login
 * this will open up the default web browser with a link, click on Login
 
 git init
+
 heroku git:remote -a NAME_OF_YOUR_APP
+
 git add .
+
 git commit -am "Setup"
+
 git push heroku master
 
 5. In the Heroku App dashboard now go to Resources and turn on "worker node bot.js"
@@ -51,8 +57,10 @@ git push heroku master
 
 heroku login
 
-* this will open up the default web browser with a link, click on Login
+this will open up the default web browser with a link, click on Login
 
 heroku git:remote -a NAME_OF_YOUR_APP
+
 git commit -am "Update"
+
 git push heroku master

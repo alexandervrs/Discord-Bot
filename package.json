@@ -6,6 +6,6 @@
 	"author": "AUTHOR_NAME",
 	"dependencies": {
 		"discord.js": "^11.4.2",
-		"sqlite3": "^4.0.6"
+		"mysql2": "^1.6.5"
 	}
 }

@@ -4,18 +4,11 @@ const package = require("./package.json");
 
 const discord = require("discord.js");
 const util    = require("util");
-const sqlite3 = require('sqlite3').verbose();
+const mysql   = require("mysql2");
 
 const Text        = require("./libs/Text.js");
 const Mathematics = require("./libs/Mathematics.js");
 const Datetime    = require("./libs/Datetime.js");
-
-
-
-const client = new discord.Client({
-    disableEveryone: true,
-    disabledEvents: ["TYPING_START"]
-});
 
 
 /* -----------------------------------------
@@ -24,12 +17,21 @@ const client = new discord.Client({
 
 var commandPrefix = config.commandPrefix;
 
-var db = new sqlite3.Database('./userdata.sqlite');
+const dbHost     = "localhost";
+const dbUser     = "root";
+const dbPassword = "";
+const dbName     = "test";
 
 
 /* -----------------------------------------
    Initialize & Status
 ----------------------------------------- */
+
+const client = new discord.Client({
+    disableEveryone: true,
+    disabledEvents: ["TYPING_START"]
+});
+
 
 // connected and ready
 client.on("ready", () => {
@@ -70,7 +72,7 @@ client.on("message", async message => {
 	}
 	
 	// handle messages in the Direct Messages
-	if (message.channel.type === 'dm') {
+	if (message.channel.type === "dm") {
         
 		message.channel.send("Handle DMS!");
 		// ...
@@ -165,7 +167,16 @@ client.on("message", async message => {
 			
 			var resultMessage = "";
 			
-			var replies = ["Most likely!", "Not sure about that "+userName+"...", "Yes!", "Not really "+userName+"...", "Oh certainly!", "Doubt it "+userName+"!", "Oh yeah!"];
+			var replies = [
+				"Most likely!",
+				"Not sure about that "+userName+"...",
+				"Yes!",
+				"Not really "+userName+"...",
+				"Oh certainly!",
+				"Doubt it "+userName+"!",
+				"Oh yeah!"
+			];
+			
 			resultMessage = replies[Math.floor(Math.random() * replies.length)];
 			
 			// send the result
@@ -184,11 +195,20 @@ client.on("message", async message => {
 			
 			var resultMessage = "";
 			
-			// choose an answer if user asks about (favorite_food)
-			if ( (messageContent.match(/what/i) || messageContent.match(/favorite/i) || messageContent.match(/liked/i) || messageContent.match(/fave/i)) && (messageContent.match(/food/i) || messageContent.match(/eat/i) || messageContent.match(/snack/i)) ) {
+			// choose an answer if user asks about (what is your favorite/liked food)
+			if (
+				( messageContent.match(/what/i) || messageContent.match(/favorite/i) || messageContent.match(/liked/i) || messageContent.match(/fave/i) ) 
+				&& 
+				( messageContent.match(/food/i) || messageContent.match(/eat/i) || messageContent.match(/snack/i) ) 
+			) {
 				
-				var favoriteFoodReplies = ["Pizza", "Apples", "Cake, "+userName+"..."];
-				resultMessage = favoriteFoodReplies[Math.floor(Math.random() * favoriteFoodReplies.length)];
+				var replies = [
+					"Pizza",
+					"Apples",
+					"Cake, "+userName+"..."
+				];
+				
+				resultMessage = replies[Math.floor(Math.random() * replies.length)];
 				
 			} else {
 				
@@ -247,63 +267,57 @@ client.on("message", async message => {
 		
 		if (command === "userwrite") {
 		
+			var pool = mysql.createPool({
+				host: dbHost,
+				user: dbUser,
+				password: dbPassword,
+				database: dbName,
+				waitForConnections: true,
+				connectionLimit: 10,
+				queueLimit: 0
+			});
 			
-			var userdata;
-			
-			// retrieve the data first
-			db.get("SELECT * FROM scores WHERE user_id=?", [userID], function (err, row) {
-				
-				if (err) {
-					console.error(err);
-				}
-				
-				// default values (if user hasn't submitted data in the database before)
-				if (row == undefined) {
-				
-					console.log("User "+userID+" does not exist, creating...");
-					
-					userdata = {
-						"userID": userID,
-						"points": 0
-					}
-					
-					
-				} else {
-				
-					// log data
-					console.log(row.user_id, " - ", row.points);
-					
-					// get all data in an object
-					userdata = row;
-				
-				}
-				
-				// test: increment points
-				userdata["points"] = userdata["points"] + 1;
-				
-				message.channel.send(userName+" you got :star: +1 pts!");
-			
-				// finally write the data back in database
-				db.run("INSERT OR REPLACE INTO scores (user_id, user_tag, points) VALUES ($userID, $userTag, $points)", 
-				{
-					$userID: userID,
-					$userTag: userTag,
-					$points: userdata["points"]
-				}
-				, function(err){
+			pool.execute(
+				"SELECT * FROM userdata WHERE name=?",
+				[userID],
+				function(err, results) {
 					
 					if (err) {
-						console.error(err);
+						console.log("Error when executing query "+err);
 					}
 					
-					// log new value
-					console.log("Points became: "+userdata["points"]);
+					Object.keys(results).forEach(function(key) {
+						
+						var row = results[key];
+						
+						console.log( row.name +": "+row.score );
+					  
+					});
 					
-					message.channel.send("Data saved!");
+					var newScore = row.score + 1;
 					
-				});
-				
-			});
+					message.channel.send(userName+" you got :star: +1 pts!");
+					
+					// validate data first ...
+					
+					pool.execute(
+						"INSERT INTO userdata (name,score) VALUES(?,?) ON DUPLICATE KEY UPDATE score=?",
+						[ userID, newScore, newScore ],
+						function(err) {
+							
+							if (err) {
+								console.log("Error when executing SQL query: "+err);
+							}
+							
+							console.log("User Data for "+userID+": "+newScore);
+							
+							message.channel.send("Data saved, you now have :star: "+newScore+" pts, "+userName+"!");
+						}
+					);
+					
+					
+				}
+			);
 		
 		}
 		
@@ -316,44 +330,37 @@ client.on("message", async message => {
 		
 		if (command === "userread") {
 			
-			var userdata;
+			var pool = mysql.createPool({
+				host: dbHost,
+				user: dbUser,
+				password: dbPassword,
+				database: dbName,
+				waitForConnections: true,
+				connectionLimit: 10,
+				queueLimit: 0
+			});
 			
-			// retrieve the data first
-			db.get("SELECT * FROM scores WHERE user_id=?", [userID], function (err, row) {
-				
-				if (err) {
-					console.error(err);
-				}
-				
-				// default values (if user hasn't submitted data in the database before)
-				if (row == undefined) {
+			pool.execute(
+				"SELECT * FROM userdata WHERE name=?",
+				[userID],
+				function(err, results) {
 					
-					userdata = {
-						"userID": userID,
-						"points": 0
+					if (err) {
+						console.log("Error when executing query "+err);
 					}
 					
+					Object.keys(results).forEach(function(key) {
+						
+						var row = results[key];
+						
+						console.log( row.name +": "+row.score );
+					  
+					});
 					
-				} else {
-				
-					// log data
-					console.log(row.user_id, " - ", row.points);
-					
-					// get all data in an object
-					userdata = row;
+					message.channel.send("You have :star: "+row.score+" pts, "+userName+"!");
 				
 				}
-				
-				
-					
-				// log new value
-				console.log("Points: "+userdata["points"]);
-				
-				// send data as message
-				message.channel.send(userName+" you have :star: "+userdata["points"]+" pts!");
-				
-				
-			});
+			);
 			
 		}
 		
@@ -485,13 +492,13 @@ client.on("error", function(error){
 });
 
 // handle errors so they don't crash the client
-process.on('uncaughtException', (err) => {
-    const errorMsg = err.stack.replace(new RegExp(`${__dirname}/`, 'g'), './');
-    console.error('Uncaught Exception: ', errorMsg);
+process.on("uncaughtException", (err) => {
+    const errorMsg = err.stack.replace(new RegExp(`${__dirname}/`, "g"), "./");
+    console.error("Uncaught Exception: ", errorMsg);
 });
 
-process.on('unhandledRejection', err => {
-    console.error('Uncaught Promise Error: ', err);
+process.on("unhandledRejection", err => {
+    console.error("Uncaught Promise Error: ", err);
 });
 
 
