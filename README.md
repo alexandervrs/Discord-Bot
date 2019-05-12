@@ -32,7 +32,7 @@ https://discordapp.com/oauth2/authorize?&client_id=CLIENTID&scope=bot&permission
 
 2. Go to App Settings and "Add Buildpack", then choose the "nodejs" icon
 
-3. Make sure yo have Git and Heroku CLI tools installed (https://git-scm.com/ & https://devcenter.heroku.com/articles/heroku-cli)
+3. Make sure you have Git and Heroku CLI tools installed (https://git-scm.com/ & https://devcenter.heroku.com/articles/heroku-cli)
 
 4. From within your Bot folder, run cmd.exe and then:
 
