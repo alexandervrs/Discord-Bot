@@ -38,7 +38,7 @@ https://discordapp.com/oauth2/authorize?&client_id=CLIENTID&scope=bot&permission
 
 `heroku login`
 
-* this will open up the default web browser with a link, click on Login
+this will open up the default web browser with a link, click on Login
 
 `git init`
 
