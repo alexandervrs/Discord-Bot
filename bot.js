@@ -39,10 +39,13 @@ client.on("ready", () => {
 	// set a "now playing" message (optional)
     client.user.setActivity("Now Playing SOMETHING");
 	
-	// set the client's online/idle/dnd/invisible status
+	// set the bot's online/idle/dnd/invisible status
 	client.user.setStatus("online");
 	
-	// client has initialized, get info
+	// set the bot's avatar (Discord does not permit to change this extremely often)
+	// client.user.setAvatar("content/avatars/1.png");
+	
+	// bot has initialized, get info
 	console.log("Connection was established at "+Datetime.GetToday());
     console.log(`Bot ${package.name} is online!\nLogged in as: ${client.user.tag}\n${client.users.size} users, in ${client.guilds.size} servers connected`);
 	
@@ -231,10 +234,10 @@ client.on("message", async message => {
 		if (command === "react") {
 			
 			// react to existing message
-			message.react("💩");
+			message.react("\:poop:");
 			
 			// react to new message
-			message.channel.send("Will get a reaction too!").then(sentMessage => sentMessage.react("💩"));
+			message.channel.send("Will get a reaction too!").then(sentMessage => sentMessage.react("\:poop:"));
 
 			
 		}
@@ -260,7 +263,6 @@ client.on("message", async message => {
 		/* ------------- end of command -------------- */
 		
 		
-		
 		/* ----------------------------------------------
 		   Command: userwrite
 		---------------------------------------------- */
@@ -273,12 +275,12 @@ client.on("message", async message => {
 				password: dbPassword,
 				database: dbName,
 				waitForConnections: true,
-				connectionLimit: 10,
+				connectionLimit: 151,
 				queueLimit: 0
 			});
 			
 			pool.execute(
-				"SELECT * FROM userdata WHERE name=?",
+				"SELECT * FROM userdata WHERE user_id=?",
 				[userID],
 				function(err, results) {
 					
@@ -286,30 +288,38 @@ client.on("message", async message => {
 						console.log("Error when executing query "+err);
 					}
 					
+					var row;
+					
 					Object.keys(results).forEach(function(key) {
 						
-						var row = results[key];
+						row = results[key];
 						
-						console.log( row.name +": "+row.score );
+						console.log( row.user_id +": "+row.score );
 					  
 					});
 					
-					var newScore = row.score + 1;
+					var newScore;
+
+					if (row === undefined) {
+						newScore = 1;
+					} else {
+						newScore = row["score"] + 1;
+					}
 					
 					message.channel.send(userName+" you got :star: +1 pts!");
 					
 					// validate data first ...
 					
 					pool.execute(
-						"INSERT INTO userdata (name,score) VALUES(?,?) ON DUPLICATE KEY UPDATE score=?",
-						[ userID, newScore, newScore ],
+						"INSERT INTO userdata (user_id,user_tag,score) VALUES(?,?,?) ON DUPLICATE KEY UPDATE score=?",
+						[ userID, userTag, newScore, newScore ],
 						function(err) {
 							
 							if (err) {
 								console.log("Error when executing SQL query: "+err);
 							}
 							
-							console.log("User Data for "+userID+": "+newScore);
+							console.log("User Data for "+userID+" ("+userTag+"): "+newScore);
 							
 							message.channel.send("Data saved, you now have :star: "+newScore+" pts, "+userName+"!");
 						}
@@ -336,12 +346,12 @@ client.on("message", async message => {
 				password: dbPassword,
 				database: dbName,
 				waitForConnections: true,
-				connectionLimit: 10,
+				connectionLimit: 151,
 				queueLimit: 0
 			});
 			
 			pool.execute(
-				"SELECT * FROM userdata WHERE name=?",
+				"SELECT * FROM userdata WHERE user_id=?",
 				[userID],
 				function(err, results) {
 					
@@ -349,18 +359,84 @@ client.on("message", async message => {
 						console.log("Error when executing query "+err);
 					}
 					
+						
+					var row;
+					
 					Object.keys(results).forEach(function(key) {
 						
-						var row = results[key];
+						row = results[key];
 						
-						console.log( row.name +": "+row.score );
+						console.log( row.user_id +": "+row.score );
 					  
 					});
 					
-					message.channel.send("You have :star: "+row.score+" pts, "+userName+"!");
-				
+					if (row === undefined) {
+						message.channel.send("No results found for "+userName+"!");	
+					} else {
+						message.channel.send("You have :star: "+row["score"]+" pts, "+userName+"!");
+					}
+					
 				}
 			);
+			
+		}
+		
+		/* ------------- end of command -------------- */
+		
+		
+		/* ----------------------------------------------
+		   Command: userscores
+		---------------------------------------------- */
+		
+		if (command === "userscores") {
+		
+			var pool = mysql.createPool({
+				host: dbHost,
+				user: dbUser,
+				password: dbPassword,
+				database: dbName,
+				waitForConnections: true,
+				connectionLimit: 151,
+				queueLimit: 0
+			});
+			
+			pool.execute(
+				"SELECT score,user_tag FROM userdata ORDER BY `score` DESC",
+				function(err, results) {
+					
+						if (err) {
+							console.log("Error when executing query "+err);
+						}
+						
+						var tableData = "";
+						var row;
+						var i = 0;
+						
+						Object.keys(results).forEach(function(key) {
+							
+							row = results[key];
+
+							var first = "";
+							if (i == 0) {
+								first = ":crown:"; // or custom emoji: client.emojis.find(emoji => emoji.name === "EMOJI_NAME_HERE");
+							}
+							
+							tableData += (i+1)+") "+row.user_tag.split("#")[0] +": **"+row.score+"** "+first+"\n";
+							
+							i++;
+						  
+						});
+						
+						if (row === undefined) {
+							message.channel.send("No results found!");	
+						} else {
+							message.channel.send("**HIGH SCORES**\n\n"+tableData);
+						}
+						
+					}
+				);
+		
+			}
 			
 		}
 		
@@ -413,6 +489,7 @@ client.on("message", async message => {
 			"!postimage Uploads and attaches an image file\n"+
 			"!userwrite Tests user persistent data writing\n"+
 			"!userread Tests user persistent data reading\n"+
+			"!userscores Lists out the persistent data\n"+
 			"!reverse Reverts a message\n"+
 			"!pi Shows the PI math constant\n"+
 			"!help Displays this message\n"+

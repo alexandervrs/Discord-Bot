@@ -21,7 +21,9 @@ https://discordapp.com/oauth2/authorize?&client_id=CLIENTID&scope=bot&permission
 
 9. If Discord bot still fails to run please make sure you have nodejs installed and the discord.js & sqlite3 modules
 
-* You will need to have a MySQL server for the user data read/write to work
+* You will need to have a MySQL server for the user data read/write to work, you can get one for free at remotemysql.com
+  Don't forget to change your database details in bot.js & you can import the userdata.sql located under /setup/ folder
+  in order to get the basic structure of the database table and test things out with !userread & !userwrite commands
 
 
 **Hosting your Bot with Heroku**

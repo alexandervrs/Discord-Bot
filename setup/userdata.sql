@@ -1,13 +1,15 @@
 -- phpMyAdmin SQL Dump
--- version 4.4.14
--- http://www.phpmyadmin.net
+-- version 4.8.5
+-- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: May 10, 2019 at 03:11 PM
--- Server version: 5.6.26
--- PHP Version: 5.6.12
+-- Host: localhost
+-- Generation Time: May 12, 2019 at 12:01 AM
+-- Server version: 8.0.13-4
+-- PHP Version: 7.2.17-0ubuntu0.18.04.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
 SET time_zone = "+00:00";
 
 
@@ -26,18 +28,11 @@ SET time_zone = "+00:00";
 -- Table structure for table `userdata`
 --
 
-CREATE TABLE IF NOT EXISTS `userdata` (
-  `name` varchar(255) NOT NULL,
+CREATE TABLE `userdata` (
+  `user_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `user_tag` varchar(255) NOT NULL DEFAULT '',
   `score` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data for table `userdata`
---
-
-INSERT INTO `userdata` (`name`, `score`) VALUES
-('Alex', 500),
-('Amanda', 600);
 
 --
 -- Indexes for dumped tables
@@ -47,7 +42,8 @@ INSERT INTO `userdata` (`name`, `score`) VALUES
 -- Indexes for table `userdata`
 --
 ALTER TABLE `userdata`
-  ADD PRIMARY KEY (`name`);
+  ADD PRIMARY KEY (`user_id`);
+COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
