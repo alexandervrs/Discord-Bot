@@ -36,19 +36,19 @@ https://discordapp.com/oauth2/authorize?&client_id=CLIENTID&scope=bot&permission
 
 4. From within your Bot folder, run cmd.exe and then:
 
-heroku login
+`heroku login`
 
 * this will open up the default web browser with a link, click on Login
 
-git init
+`git init`
 
-heroku git:remote -a NAME_OF_YOUR_APP
+`heroku git:remote -a NAME_OF_YOUR_APP`
 
-git add .
+`git add .`
 
-git commit -am "Setup"
+`git commit -am "Setup"`
 
-git push heroku master
+`git push heroku master`
 
 5. In the Heroku App dashboard now go to Resources and turn on "worker node bot.js"
 
@@ -57,12 +57,12 @@ git push heroku master
 
 1. From within your Bot folder, run cmd.exe and then:
 
-heroku login
+`heroku login`
 
 this will open up the default web browser with a link, click on Login
 
-heroku git:remote -a NAME_OF_YOUR_APP
+`heroku git:remote -a NAME_OF_YOUR_APP`
 
-git commit -am "Update"
+`git commit -am "Update"`
 
-git push heroku master
+`git push heroku master`
