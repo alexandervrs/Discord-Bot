@@ -234,10 +234,10 @@ client.on("message", async message => {
 		if (command === "react") {
 			
 			// react to existing message
-			message.react("\:poop:");
+			message.react("💩");
 			
 			// react to new message
-			message.channel.send("Will get a reaction too!").then(sentMessage => sentMessage.react("\:poop:"));
+			message.channel.send("Will get a reaction too!").then(sentMessage => sentMessage.react("💩"));
 
 			
 		}
