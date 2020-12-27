@@ -436,9 +436,9 @@ client.on("message", async message => {
 					}
 				);
 		
-			}
-			
 		}
+			
+		
 		
 		/* ------------- end of command -------------- */
 		
@@ -504,9 +504,8 @@ client.on("message", async message => {
 		}
 		
 		/* ------------- end of command -------------- */
-		
-	}
 	
+	}
 	
 });
 
